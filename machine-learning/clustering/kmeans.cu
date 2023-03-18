@@ -29,11 +29,20 @@ __inline__ __device__ float blockReduce(float sum) {
 }
 
 extern "C" __global__
-void kernel(int M, int N, int C, int BLOCK_M, float* X, float* centers, int* assigns) {
+void kernel(int M, int N, int C, int BLOCK_M, float* X, float* centers,
+    float* block_centers, float* block_center_counts, int* assigns) {
     int om = blockIdx.x;
     int n = threadIdx.x;
 
     int bound = min(om*BLOCK_M+BLOCK_M, M);
+
+    float* block_centers_start = block_centers + blockIdx.x * C * N;
+    for (int c = 0; c < C; c++) {
+        block_centers_start[c*N+n] = 0;
+        if (n == 0) {
+            block_center_counts[blockIdx.x*C + c] = 0;
+        }
+    }
 
     for (int m = om*BLOCK_M; m < bound; m++) {
         float x = X[m*N + n];
@@ -55,8 +64,12 @@ void kernel(int M, int N, int C, int BLOCK_M, float* X, float* centers, int* ass
         if (n == 0) {
             assigns[m] = min_dist_cluster;
         }
+
+        int c = min_dist_cluster;
+        block_centers_start[c*N+n] += x;
+        if (n == 0) {
+            block_center_counts[blockIdx.x*C + c] += 1;
+        }
     }
 
-
-    
 }
