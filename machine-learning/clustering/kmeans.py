@@ -40,7 +40,7 @@ src = open('kmeans.cu').read()
 kernel = cp.RawKernel(src, 'kernel', backend='nvcc', options=('-O3',))
 
 assigns = cp.empty([M], dtype=cp.int32)
-BLOCK_M = 256
+BLOCK_M = 512
 def kmeans_gpu():
     nblocks = M // BLOCK_M
     # Each block (`nthreads` threads) works on a row
