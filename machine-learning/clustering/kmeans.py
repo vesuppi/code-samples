@@ -19,11 +19,11 @@ np.random.seed(0)
 
 M = 1024*128
 N = 64
-C = 16
+C = 8
 X = np.random.randn(M, N).astype(np.float32)
 
 init_centers = np.random.randn(C, N).astype(np.float32)
-max_iters = 1
+max_iters = 100
 kmeans = KMeans(n_clusters=C, random_state=0, n_init=1, init=init_centers, max_iter=max_iters)
 kmeans.fit(X)
 
@@ -85,8 +85,8 @@ def kmeans_gpu(iters=max_iters):
         aggregate_centers(gpu_init_centers)
     return labels
 
-labels = kmeans_gpu(1)
-#print(bench(lambda: kmeans_gpu(1)))
+labels = kmeans_gpu(max_iters)
+print(bench(lambda: kmeans_gpu(max_iters))/max_iters)
 print(labels)
 print('labels allclose:', cp.allclose(labels, kmeans.labels_))
 
