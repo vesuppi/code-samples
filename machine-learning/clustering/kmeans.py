@@ -19,7 +19,7 @@ np.random.seed(0)
 
 M = 1024*128
 N = 64
-C = 8
+C = 16
 X = np.random.randn(M, N).astype(np.float32)
 
 init_centers = np.random.randn(C, N).astype(np.float32)
