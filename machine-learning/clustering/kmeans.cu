@@ -29,29 +29,34 @@ __inline__ __device__ float blockReduce(float sum) {
 }
 
 extern "C" __global__
-void kernel(int M, int N, int C, int BLOCK_M, float* X, float* centers) {
-    int m = blockIdx.x;
+void kernel(int M, int N, int C, int BLOCK_M, float* X, float* centers, int* assigns) {
+    int om = blockIdx.x;
     int n = threadIdx.x;
+
+    int bound = min(om*BLOCK_M+BLOCK_M, M);
+
+    for (int m = om*BLOCK_M; m < bound; m++) {
+        float x = X[m*N + n];
+        float min_dist = 100000000;
+        int min_dist_cluster = -1;
+        for (int i = 0; i < C; i++) {
+            float c = centers[i*N + n];
+            float t = (x-c) * (x-c);
     
-    if (m > M) {
-        return;
-    }
-
-    float x = X[m*N + n];
-    float min_dist = 100000000;
-    int min_dist_cluster = -1;
-    for (int i = 0; i < C; i++) {
-        float c = centers[i*N + n];
-        float t = (x-c) * (x-c);
-
-        float sum = blockReduce(t);
-        if (n == 0) {
-            float distance = sqrt(sum);
-            if (distance < min_dist) {
-                min_dist = distance;
-                min_dist_cluster = i;
+            float sum = blockReduce(t);
+            if (n == 0) {
+                float distance = sqrt(sum);
+                if (distance < min_dist) {
+                    min_dist = distance;
+                    min_dist_cluster = i;
+                }
             }
         }
+        if (n == 0) {
+            assigns[m] = min_dist_cluster;
+        }
     }
+
+
     
 }

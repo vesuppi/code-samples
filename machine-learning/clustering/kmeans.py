@@ -25,11 +25,11 @@ X = np.random.randn(M, N).astype(np.float32)
 init_centers = np.random.randn(C, N).astype(np.float32)
 kmeans = KMeans(n_clusters=C, random_state=0, n_init=1, init=init_centers, max_iter=1)
 kmeans.fit(X)
-print(torch.get_num_threads())
-print(kmeans.cluster_centers_, kmeans.n_iter_)
-print(timeit(lambda: kmeans.fit(X), number=3)/3)
-print('row-wise sum cpu time:', bench(lambda: np.sum(X, axis=1)))
-print(bench(lambda: kmeans.fit(X)))
+print(kmeans.labels_)
+#print(kmeans.cluster_centers_, kmeans.n_iter_)
+#print(timeit(lambda: kmeans.fit(X), number=3)/3)
+#print('row-wise sum cpu time:', bench(lambda: np.sum(X, axis=1)))
+print('kmeans sklearn', bench(lambda: kmeans.fit(X)))
 
 
 X = cp.array(X)
@@ -39,18 +39,26 @@ print(X.dtype)
 src = open('kmeans.cu').read()
 kernel = cp.RawKernel(src, 'kernel', backend='nvcc', options=('-O3',))
 
-def kmeans():
+assigns = cp.empty([M], dtype=cp.int32)
+BLOCK_M = 256
+def kmeans_gpu():
+    nblocks = M // BLOCK_M
     # Each block (`nthreads` threads) works on a row
     nthreads = N
+    #block_centers = cp.empty([nblocks, C, N])
     kernel(
-        (M,), 
-        (N,),
-        (M, N, C, X, init_centers)
+        (nblocks,), 
+        (nthreads,),
+        (M, N, C, BLOCK_M, X, init_centers, assigns)
     )
 
 
-kmeans()
-ms, _, _ = triton.testing.do_bench(lambda: kmeans())
-print(ms)
+kmeans_gpu()
+# print(assigns)
+# for i in range(M):
+#     if kmeans.labels_[i] != assigns[i]:
+#         print(i, kmeans.labels_[i], assigns[i])
+# print(cp.allclose(assigns, cp.array(kmeans.labels_)))
+print('kmeans gpu:', bench(lambda: kmeans_gpu()))
 
-print('row-wise sum gpu time:', bench(lambda: cp.sum(X, axis=1)))
+#print('row-wise sum gpu time:', bench(lambda: cp.sum(X, axis=1)))
