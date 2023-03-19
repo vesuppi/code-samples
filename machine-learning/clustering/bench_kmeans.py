@@ -21,7 +21,7 @@ C = 16
 X = np.random.randn(M, N).astype(np.float32)
 
 init_centers = np.random.randn(C, N).astype(np.float32)
-max_iters = 10
+max_iters = 100
 kmeans = KMeans(n_clusters=C, random_state=0, n_init=1, init=init_centers, max_iter=max_iters)
 kmeans.fit(X)
 

@@ -33,20 +33,24 @@ void kernel(int M, int N, int C, float* X, float* centers, int* labels) {
     int m = blockIdx.x;
     int n = threadIdx.x;
 
-    float x = X[m*N + n];
-    float min_dis = 1000000;
-    float cluster = -1;
-    for (int i = 0; i < C; i++) {
-        float c = centers[i*N + n];
-        float pdis = (x-c) * (x-c);
-        float dis = blockReduce(pdis);
-        if (dis < min_dis) {
-            min_dis = dis;
-            cluster = i;
+    for (m = blockIdx.x; m < M; m += gridDim.x) {
+        float x = X[m*N + n];
+        float min_dis = 1000000;
+        float cluster = -1;
+        for (int i = 0; i < C; i++) {
+            float c = centers[i*N + n];
+            float pdis = (x-c) * (x-c);
+            float dis = blockReduce(pdis);
+            if (dis < min_dis) {
+                min_dis = dis;
+                cluster = i;
+            }
+        }
+    
+        if (n == 0) {
+            labels[m] = cluster;
         }
     }
 
-    if (n == 0) {
-        labels[m] = cluster;
-    }
+    
 }
