@@ -15,13 +15,13 @@ def bench(fn):
 
 np.random.seed(0)
 
-M = 1024*128
-N = 64
-C = 16
+M = 60000
+N = 512
+C = 128
 X = np.random.randn(M, N).astype(np.float32)
 
 init_centers = np.random.randn(C, N).astype(np.float32)
-max_iters = 100
+max_iters = 20
 kmeans = KMeans(n_clusters=C, random_state=0, n_init=1, init=init_centers, max_iter=max_iters)
 kmeans.fit(X)
 
@@ -44,7 +44,7 @@ gkmeans.setup(X)
 print(bench(lambda: gkmeans.update_labels()))
 print(bench(lambda: gkmeans.update_centers()))
 print(bench(lambda: gkmeans.aggregate_centers()))
-print(bench(lambda: gkmeans.fit(X)))
+print(bench(lambda: gkmeans.fit(X))/max_iters)
 #gkmeans.setup(X)
 
 #print(bench(lambda: gkmeans.update_labels()))
