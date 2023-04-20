@@ -25,7 +25,7 @@ max_iters = 20
 kmeans = KMeans(n_clusters=C, random_state=0, n_init=1, init=init_centers, max_iter=max_iters)
 kmeans.fit(X)
 
-print('kmeans centers:', kmeans.cluster_centers_[0])
+#print('kmeans centers:', kmeans.cluster_centers_[0])
 print('kmeans labels:', kmeans.labels_)
 print('kmeans iters:', kmeans.n_iter_)
 #print(kmeans.cluster_centers_, kmeans.n_iter_)
@@ -36,9 +36,9 @@ print('kmeans sklearn:', bench(lambda: kmeans.fit(X))/kmeans.n_iter_)
 
 gkmeans = GPUKmeans(n_clusters=C, init=init_centers, max_iter=max_iters)
 gkmeans.fit(X)
-print(cp.sum(cp.array(kmeans.labels_)- gkmeans.labels))
-print(gkmeans.centers[0])
-print(gkmeans.labels)
+#print(cp.sum(cp.array(kmeans.labels_)- gkmeans.labels))
+#print(gkmeans.centers[0])
+#print(gkmeans.labels)
 
 gkmeans.setup(X)
 print(bench(lambda: gkmeans.update_labels()))
